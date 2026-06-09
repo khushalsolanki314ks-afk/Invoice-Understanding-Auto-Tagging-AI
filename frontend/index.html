@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BillMart — Invoice AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Variables ─────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0b0d0f;
+      --surface:    #12151a;
+      --surface2:   #1a1f27;
+      --border:     #232a35;
+      --text:       #e8eaf0;
+      --text-muted: #7a8496;
+      --accent:     #00d4aa;
+      --accent-dim: #00d4aa22;
+      --danger:     #ff4757;
+      --danger-dim: #ff475722;
+      --warn:       #ffb300;
+      --warn-dim:   #ffb30022;
+      --safe:       #00e676;
+      --safe-dim:   #00e67622;
+      --mono:       'Space Mono', monospace;
+      --serif:      'DM Serif Display', serif;
+      --sans:       'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ─── Scrollbar ─────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── Layout ────────────────────────────────── */
+    .shell { display: flex; min-height: 100vh; }
+
+    /* ─── Sidebar ───────────────────────────────── */
+    .sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand-logo {
+      font-family: var(--serif);
+      font-size: 22px;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .nav { padding: 16px 12px; flex: 1; }
+    .nav-section {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 12px 8px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); }
+    .nav-item .icon { width: 18px; text-align: center; font-size: 15px; }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--safe);
+      box-shadow: 0 0 6px var(--safe);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── Main Content ──────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ─── Top Bar ───────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .page-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      color: var(--text);
+    }
+    .topbar-actions { display: flex; gap: 10px; }
+
+    /* ─── Buttons ───────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: #00efc0; border-color: #00efc0; color: #000; }
+
+    /* ─── Content Area ──────────────────────────── */
+    .content { padding: 24px 28px; flex: 1; overflow-y: auto; }
+
+    /* ─── Views ─────────────────────────────────── */
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── Stats Grid ────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: var(--accent);
+    }
+    .stat-card.danger::after { background: var(--danger); }
+    .stat-card.warn::after { background: var(--warn); }
+    .stat-card.safe::after { background: var(--safe); }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: var(--serif);
+      font-size: 32px;
+      line-height: 1;
+      color: var(--text);
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ─── Upload Zone ───────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .upload-icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-title {
+      font-family: var(--serif);
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .upload-sub { color: var(--text-muted); font-size: 13px; }
+    .upload-formats {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .format-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    /* ─── Demo Scenarios ────────────────────────── */
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .scenario-btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .scenario-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .scenario-btn .s-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .scenario-btn .s-name { font-weight: 600; display: block; font-size: 11px; }
+    .scenario-btn .s-desc { font-size: 10px; color: var(--text-muted); }
+
+    /* ─── Table ─────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .table-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      text-align: left;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    tbody td {
+      padding: 12px 20px;
+      vertical-align: middle;
+    }
+
+    /* ─── Badges ────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: 0.5px;
+    }
+    .badge.low  { background: var(--safe-dim);   color: var(--safe);   border: 1px solid #00e67644; }
+    .badge.medium { background: var(--warn-dim); color: var(--warn);   border: 1px solid #ffb30044; }
+    .badge.high { background: var(--danger-dim); color: var(--danger); border: 1px solid #ff475744; }
+    .badge.clean { background: var(--safe-dim);  color: var(--safe);   border: 1px solid #00e67644; }
+    .badge.flagged { background: var(--danger-dim); color: var(--danger); border: 1px solid #ff475744; }
+
+    /* ─── Result Panel ──────────────────────────── */
+    .result-panel {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .result-panel.visible { display: grid; animation: fadeIn 0.3s ease; }
+
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-body { padding: 20px; }
+
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .field-row:last-child { border-bottom: none; }
+    .field-label { color: var(--text-muted); font-size: 12px; }
+    .field-value { font-weight: 500; text-align: right; max-width: 60%; }
+
+    .conf-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .conf-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .conf-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 0.6s ease;
+    }
+    .conf-fill.low-conf { background: var(--danger); }
+    .conf-fill.mid-conf { background: var(--warn); }
+    .conf-num {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .anomaly-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      border: 1px solid;
+    }
+    .anomaly-item.high   { border-color: #ff475744; background: var(--danger-dim); }
+    .anomaly-item.medium { border-color: #ffb30044; background: var(--warn-dim); }
+    .anomaly-item.low    { border-color: #00e67644; background: var(--safe-dim); }
+
+    .anomaly-icon { font-size: 20px; flex-shrink: 0; }
+    .anomaly-code { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; font-weight: 700; }
+    .anomaly-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .anomaly-action { font-size: 11px; margin-top: 4px; color: var(--warn); }
+
+    .risk-visual {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 0;
+    }
+    .risk-gauge {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      border: 3px solid var(--border);
+      position: relative;
+      font-family: var(--serif);
+    }
+    .risk-gauge.low    { border-color: var(--safe);   box-shadow: 0 0 20px var(--safe-dim); }
+    .risk-gauge.medium { border-color: var(--warn);   box-shadow: 0 0 20px var(--warn-dim); }
+    .risk-gauge.high   { border-color: var(--danger); box-shadow: 0 0 20px var(--danger-dim); }
+    .risk-bucket-text {
+      font-size: 22px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .risk-score-text {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .risk-rationale {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ─── Progress indicator ─────────────────────── */
+    .processing-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0b0d0fcc;
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .processing-overlay.visible { display: flex; }
+    .processing-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .processing-text {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .processing-step {
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ─── Responsive ────────────────────────────── */
+    @media (max-width: 1100px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .scenario-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .result-panel { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">BillMart</div>
+      <div class="brand-sub">Invoice AI Platform</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Dashboard</div>
+      <div class="nav-item active" onclick="showView('dashboard')">
+        <span class="icon">📊</span> Overview
+      </div>
+      <div class="nav-item" onclick="showView('upload')">
+        <span class="icon">📤</span> Upload Invoice
+      </div>
+      <div class="nav-section">Data</div>
+      <div class="nav-item" onclick="showView('invoices')">
+        <span class="icon">🧾</span> All Invoices
+      </div>
+      <div class="nav-item" onclick="showView('anomalies')">
+        <span class="icon">🚨</span> Anomalies
+      </div>
+      <div class="nav-item" onclick="showView('buyers')">
+        <span class="icon">🏢</span> Buyers
+      </div>
+      <div class="nav-section">Tools</div>
+      <div class="nav-item" onclick="showView('pipeline')">
+        <span class="icon">⚙️</span> Pipeline Flow
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-pill">
+        <div class="status-dot"></div>
+        <span id="api-status">API Running</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Overview</div>
+      <div class="topbar-actions">
+        <button class="btn" onclick="refreshData()">↻ Refresh</button>
+        <button class="btn btn-primary" onclick="showView('upload')">+ Upload Invoice</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Dashboard View ── -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Invoices</div>
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-sub">Processed this session</div>
+          </div>
+          <div class="stat-card safe">
+            <div class="stat-label">Clean</div>
+            <div class="stat-value" id="stat-clean">—</div>
+            <div class="stat-sub">No anomalies</div>
+          </div>
+          <div class="stat-card danger">
+            <div class="stat-label">Flagged</div>
+            <div class="stat-value" id="stat-flagged">—</div>
+            <div class="stat-sub">Need review</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-label">Total Value</div>
+            <div class="stat-value" id="stat-value">—</div>
+            <div class="stat-sub">All invoices (₹)</div>
+          </div>
+        </div>
+
+        <!-- Risk Breakdown -->
+        <div class="table-wrap" style="margin-bottom: 16px;">
+          <div class="table-header">
+            <div class="table-title">Risk Bucket Breakdown</div>
+          </div>
+          <div style="padding: 20px; display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex:1; min-width: 120px; text-align: center; padding: 16px; border-radius: 10px; background: var(--safe-dim); border: 1px solid #00e67644;">
+              <div style="font-size: 28px; font-family: var(--serif); color: var(--safe);" id="risk-low">—</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">🟢 Low Risk</div>
+            </div>
+            <div style="flex:1; min-width: 120px; text-align: center; padding: 16px; border-radius: 10px; background: var(--warn-dim); border: 1px solid #ffb30044;">
+              <div style="font-size: 28px; font-family: var(--serif); color: var(--warn);" id="risk-medium">—</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">🟡 Medium Risk</div>
+            </div>
+            <div style="flex:1; min-width: 120px; text-align: center; padding: 16px; border-radius: 10px; background: var(--danger-dim); border: 1px solid #ff475744;">
+              <div style="font-size: 28px; font-family: var(--serif); color: var(--danger);" id="risk-high">—</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">🔴 High Risk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Recent Invoices</div>
+            <button class="btn" onclick="showView('invoices')">View All →</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice No.</th>
+                <th>Buyer</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Risk</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Upload View ── -->
+      <div class="view" id="view-upload">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">Drop invoice here or click to upload</div>
+          <div class="upload-sub">Demo: select any file — mock processing will run</div>
+          <div class="upload-formats">
+            <span class="format-tag">PDF</span>
+            <span class="format-tag">PNG</span>
+            <span class="format-tag">JPG</span>
+            <span class="format-tag">TIFF</span>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <label style="font-size:12px;color:var(--text-muted);">Language</label>
+              <select id="ocr-lang" class="btn" style="padding:6px 8px;cursor:pointer;">
+                <option value="eng">English (eng)</option>
+                <option value="hin">Hindi (hin)</option>
+                <option value="fra">French (fra)</option>
+                <option value="spa">Spanish (spa)</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <label style="font-size:12px;color:var(--text-muted);">Real OCR</label>
+              <input type="checkbox" id="real-ocr-toggle" checked />
+            </div>
+          </div>
+          <input type="file" id="file-input" style="display:none" accept=".pdf,.png,.jpg,.jpeg,.tiff" />
+        </div>
+
+        <div style="margin-bottom: 12px; font-weight: 600; font-size: 13px; color: var(--text-muted);">
+          Or try a demo scenario:
+        </div>
+        <div class="scenario-grid">
+          <div class="scenario-btn" onclick="runDemo('clean')">
+            <span class="s-icon">✅</span>
+            <span class="s-name">Clean Invoice</span>
+            <span class="s-desc">Normal processing</span>
+          </div>
+          <div class="scenario-btn" onclick="runDemo('duplicate')">
+            <span class="s-icon">🔁</span>
+            <span class="s-name">Duplicate</span>
+            <span class="s-desc">Repeat invoice no.</span>
+          </div>
+          <div class="scenario-btn" onclick="runDemo('high_amount')">
+            <span class="s-icon">💰</span>
+            <span class="s-name">High Amount</span>
+            <span class="s-desc">3σ above average</span>
+          </div>
+          <div class="scenario-btn" onclick="runDemo('date_issue')">
+            <span class="s-icon">📅</span>
+            <span class="s-name">Date Issue</span>
+            <span class="s-desc">Due before invoice</span>
+          </div>
+          <div class="scenario-btn" onclick="runDemo('unknown_buyer')">
+            <span class="s-icon">❓</span>
+            <span class="s-name">Unknown Buyer</span>
+            <span class="s-desc">Not in database</span>
+          </div>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="result-panel" id="result-panel">
+          <!-- Extracted Fields -->
+          <div class="panel-card" id="fields-card">
+            <div class="panel-header">📋 Extracted Fields</div>
+            <div class="panel-body" id="fields-body"></div>
+          </div>
+
+          <!-- Anomalies -->
+          <div class="panel-card" id="anomaly-card">
+            <div class="panel-header">🚨 Anomaly Detection</div>
+            <div class="panel-body" id="anomaly-body"></div>
+          </div>
+
+          <!-- Risk Classification -->
+          <div class="panel-card" id="risk-card">
+            <div class="panel-header">🏷️ Risk Classification</div>
+            <div class="panel-body" id="risk-body"></div>
+          </div>
+
+          <!-- Buyer Match -->
+          <div class="panel-card" id="buyer-card">
+            <div class="panel-header">🏢 Buyer Match</div>
+            <div class="panel-body" id="buyer-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Invoices View ── -->
+      <div class="view" id="view-invoices">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">All Invoices</div>
+            <div style="display:flex; gap:8px;">
+              <select id="risk-filter" class="btn" onchange="filterInvoices()" style="cursor:pointer;">
+                <option value="">All Risk</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+              <select id="status-filter" class="btn" onchange="filterInvoices()" style="cursor:pointer;">
+                <option value="">All Status</option>
+                <option value="processed">Processed</option>
+                <option value="flagged">Flagged</option>
+              </select>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice No.</th>
+                <th>Buyer</th>
+                <th>Seller</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Risk</th>
+                <th>Status</th>
+                <th>Anomalies</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Anomalies View ── -->
+      <div class="view" id="view-anomalies">
+        <div id="anomalies-list"></div>
+      </div>
+
+      <!-- ── Buyers View ── -->
+      <div class="view" id="view-buyers">
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Registered Buyers</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Buyer</th>
+                <th>ID</th>
+                <th>Avg Amount</th>
+                <th>Invoices</th>
+                <th>Payment History</th>
+                <th>Risk</th>
+              </tr>
+            </thead>
+            <tbody id="buyers-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Pipeline View ── -->
+      <div class="view" id="view-pipeline">
+        <div class="table-wrap">
+          <div class="panel-header" style="border-bottom: 1px solid var(--border); padding:16px 20px; font-size:15px;">⚙️ Invoice Processing Pipeline</div>
+          <div style="padding: 32px;">
+            <div id="pipeline-steps"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- Processing Overlay -->
+<div class="processing-overlay" id="processing-overlay">
+  <div class="processing-spinner"></div>
+  <div class="processing-step" id="processing-step">Initializing...</div>
+  <div class="processing-text">Please wait while AI processes your invoice</div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// Config
+// ──────────────────────────────────────────────
+const API = 'http://localhost:8000';
+let ALL_INVOICES = [];
+
+// ──────────────────────────────────────────────
+// Navigation
+// ──────────────────────────────────────────────
+const VIEW_TITLES = {
+  dashboard: 'Overview',
+  upload: 'Upload Invoice',
+  invoices: 'All Invoices',
+  anomalies: 'Anomaly Flags',
+  buyers: 'Buyer Registry',
+  pipeline: 'Pipeline Flow',
+};
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`view-${name}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.toLowerCase().includes(VIEW_TITLES[name].split(' ')[0].toLowerCase())) {
+      n.classList.add('active');
+    }
+  });
+  document.getElementById('page-title').textContent = VIEW_TITLES[name];
+
+  // Load data for view
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'invoices') loadInvoices();
+  if (name === 'anomalies') loadAnomalies();
+  if (name === 'buyers') loadBuyers();
+  if (name === 'pipeline') renderPipeline();
+}
+
+// ──────────────────────────────────────────────
+// API Helpers
+// ──────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  try {
+    const r = await fetch(API + path, opts);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch (e) {
+    // When backend isn't running, return mock data
+    return getMockData(path);
+  }
+}
+
+function getMockData(path) {
+  if (path === '/stats') return {
+    total_invoices: 7, clean_invoices: 3, flagged_invoices: 4,
+    total_invoice_value: 3949260, by_risk_bucket: { low: 3, medium: 1, high: 3 },
+  };
+  if (path === '/invoices') return { invoices: MOCK_INVOICES };
+  if (path === '/buyers') return { buyers: MOCK_BUYERS };
+  if (path === '/anomalies') return { flagged_invoices: MOCK_INVOICES.filter(i => i.status === 'flagged') };
+  if (path.startsWith('/demo/mock')) {
+    const url = new URL('http://x' + path);
+    const s = url.searchParams.get('buyer_scenario') || 'clean';
+    return MOCK_INVOICES[{ clean:0, duplicate:2, high_amount:3, date_issue:5, unknown_buyer:6 }[s] || 0];
+  }
+  return null;
+}
+
+// ──────────────────────────────────────────────
+// Dashboard
+// ──────────────────────────────────────────────
+async function loadDashboard() {
+  const stats = await apiFetch('/stats');
+  if (!stats) return;
+
+  document.getElementById('stat-total').textContent = stats.total_invoices;
+  document.getElementById('stat-clean').textContent = stats.clean_invoices;
+  document.getElementById('stat-flagged').textContent = stats.flagged_invoices;
+  document.getElementById('stat-value').textContent = '₹' + formatNum(stats.total_invoice_value);
+  document.getElementById('risk-low').textContent = stats.by_risk_bucket?.low || 0;
+  document.getElementById('risk-medium').textContent = stats.by_risk_bucket?.medium || 0;
+  document.getElementById('risk-high').textContent = stats.by_risk_bucket?.high || 0;
+
+  // Load recent invoices table
+  const data = await apiFetch('/invoices');
+  const invoices = (data?.invoices || MOCK_INVOICES).slice(0, 7);
+  ALL_INVOICES = data?.invoices || MOCK_INVOICES;
+
+  const tbody = document.getElementById('recent-table');
+  tbody.innerHTML = invoices.map(inv => `
+    <tr onclick="showDetail(${JSON.stringify(inv).split('"').join("'")})">
+      <td><span style="font-family:var(--mono);font-size:11px;">${inv.invoice_number || '—'}</span></td>
+      <td>${inv.buyer_name || '—'}</td>
+      <td style="font-family:var(--mono);">₹${formatNum(inv.amount || inv.total || 0)}</td>
+      <td style="color:var(--text-muted);">${inv.invoice_date || '—'}</td>
+      <td>${riskBadge(inv.risk_bucket)}</td>
+      <td>${statusBadge(inv.status)}</td>
+    </tr>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+// Invoice List
+// ──────────────────────────────────────────────
+async function loadInvoices() {
+  const data = await apiFetch('/invoices');
+  ALL_INVOICES = data?.invoices || MOCK_INVOICES;
+  renderInvoiceTable(ALL_INVOICES);
+}
+
+function filterInvoices() {
+  const risk = document.getElementById('risk-filter').value;
+  const status = document.getElementById('status-filter').value;
+  let filtered = ALL_INVOICES;
+  if (risk) filtered = filtered.filter(i => i.risk_bucket === risk);
+  if (status) filtered = filtered.filter(i => i.status === status);
+  renderInvoiceTable(filtered);
+}
+
+function renderInvoiceTable(invoices) {
+  const tbody = document.getElementById('invoices-table');
+  tbody.innerHTML = invoices.map(inv => `
+    <tr>
+      <td><span style="font-family:var(--mono);font-size:11px;">${inv.invoice_number || '—'}</span></td>
+      <td>${inv.buyer_name || '—'}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${inv.seller_name || '—'}</td>
+      <td style="font-family:var(--mono);">₹${formatNum(inv.amount || inv.total || 0)}</td>
+      <td style="color:var(--text-muted);">${inv.due_date || '—'}</td>
+      <td>${riskBadge(inv.risk_bucket)}</td>
+      <td>${statusBadge(inv.status)}</td>
+      <td style="font-size:11px;color:var(--danger);">${(inv.anomalies || []).length > 0 ? (inv.anomalies || []).join(', ').substring(0,40) : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+// Anomalies
+// ──────────────────────────────────────────────
+async function loadAnomalies() {
+  const data = await apiFetch('/anomalies');
+  const flagged = data?.flagged_invoices || MOCK_INVOICES.filter(i => i.status === 'flagged');
+
+  const container = document.getElementById('anomalies-list');
+  container.innerHTML = flagged.map(inv => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <span style="font-family:var(--mono);font-size:11px;">${inv.invoice_number}</span>
+          <span style="margin:0 10px;color:var(--text-muted);">•</span>
+          <span>${inv.buyer_name}</span>
+          <span style="margin:0 10px;color:var(--text-muted);">•</span>
+          <span style="font-family:var(--mono);">₹${formatNum(inv.amount || 0)}</span>
+        </div>
+        <div>${riskBadge(inv.risk_bucket)}</div>
+      </div>
+      <div style="padding:16px 20px;display:flex;flex-wrap:wrap;gap:10px;">
+        ${(inv.anomalies || []).map(code => `
+          <div class="anomaly-item ${codeToSev(code)}" style="flex:1;min-width:200px;">
+            <div class="anomaly-icon">${codeToIcon(code)}</div>
+            <div>
+              <div class="anomaly-code">${code}</div>
+              <div class="anomaly-desc">${codeToDesc(code)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+// Buyers
+// ──────────────────────────────────────────────
+async function loadBuyers() {
+  const data = await apiFetch('/buyers');
+  const buyers = data?.buyers || MOCK_BUYERS;
+  const tbody = document.getElementById('buyers-table');
+  tbody.innerHTML = buyers.map(b => `
+    <tr>
+      <td><strong>${b.name}</strong></td>
+      <td><span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${b.id}</span></td>
+      <td style="font-family:var(--mono);">₹${formatNum(b.avg_invoice_amount)}</td>
+      <td>${b.invoice_count}</td>
+      <td style="text-transform:capitalize;">${b.payment_history}</td>
+      <td>${riskBadge(b.risk_bucket || histToRisk(b.payment_history))}</td>
+    </tr>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+// Demo & Upload
+// ──────────────────────────────────────────────
+async function runDemo(scenario) {
+  showProcessing(true, scenario);
+  await sleep(1200);
+
+  const data = await apiFetch(`/demo/mock?buyer_scenario=${scenario}`);
+  showProcessing(false);
+
+  if (data) {
+    renderResult(data);
+    document.getElementById('result-panel').classList.add('visible');
+    document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+function setupUpload() {
+  const zone = document.getElementById('upload-zone');
+  const input = document.getElementById('file-input');
+
+  zone.addEventListener('click', () => input.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  });
+  input.addEventListener('change', e => {
+    if (e.target.files[0]) processFile(e.target.files[0]);
+  });
+}
+
+async function processFile(file) {
+  showProcessing(true, 'file');
+
+  // In demo mode, run mock pipeline after simulated delay
+  await sleep(800);
+  document.getElementById('processing-step').textContent = 'Running OCR pipeline...';
+  await sleep(700);
+  document.getElementById('processing-step').textContent = 'Extracting fields...';
+  await sleep(600);
+  document.getElementById('processing-step').textContent = 'Detecting anomalies...';
+  await sleep(500);
+  document.getElementById('processing-step').textContent = 'Classifying risk...';
+  await sleep(400);
+
+  // Try real API, fall back to mock
+  const formData = new FormData();
+  formData.append('file', file);
+  let data;
+  try {
+    const lang = document.getElementById('ocr-lang')?.value || 'eng';
+    const useReal = document.getElementById('real-ocr-toggle')?.checked ? 'true' : 'false';
+    const r = await fetch(`${API}/upload?lang=${encodeURIComponent(lang)}&use_real_ocr=${useReal}`, { method: 'POST', body: formData });
+    data = await r.json();
+  } catch {
+    data = MOCK_INVOICES[0]; // fallback
+  }
+
+  showProcessing(false);
+  renderResult(data);
+  document.getElementById('result-panel').classList.add('visible');
+  document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ──────────────────────────────────────────────
+// Result Rendering
+// ──────────────────────────────────────────────
+function renderResult(inv) {
+  // Fields
+  const fields = [
+    ['Invoice Number', inv.invoice_number, 0.9],
+    ['Invoice Date', inv.invoice_date, 0.92],
+    ['Due Date', inv.due_date, 0.88],
+    ['Buyer', inv.buyer_name, 0.85],
+    ['Seller', inv.seller_name, 0.82],
+    ['Subtotal', inv.amount ? '₹' + formatNum(inv.amount) : null, 0.87],
+    ['GST', inv.gst ? '₹' + formatNum(inv.gst) : null, 0.8],
+    ['Total Amount', (inv.total || inv.amount) ? '₹' + formatNum(inv.total || inv.amount) : null, 0.91],
+    ['Currency', inv.currency || 'INR', 0.95],
+  ];
+
+  document.getElementById('fields-body').innerHTML = fields.map(([label, val, conf]) => {
+    const confClass = conf >= 0.8 ? '' : conf >= 0.6 ? 'mid-conf' : 'low-conf';
+    return `
+      <div class="field-row">
+        <div>
+          <div class="field-label">${label}</div>
+          <div class="conf-bar">
+            <div class="conf-track"><div class="conf-fill ${confClass}" style="width:${conf*100}%"></div></div>
+            <div class="conf-num">${Math.round(conf*100)}%</div>
+          </div>
+        </div>
+        <div class="field-value">${val || '<span style="color:var(--danger)">Not found</span>'}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Anomalies
+  const anomalies = inv.anomaly_details?.anomalies || (inv.anomalies || []).map(code => ({
+    code, severity: codeToSev(code), description: codeToDesc(code), action: 'Manual review required', detail: ''
+  }));
+
+  document.getElementById('anomaly-body').innerHTML = anomalies.length === 0
+    ? `<div style="text-align:center;padding:20px;color:var(--safe);">✅ No anomalies detected</div>`
+    : anomalies.map(a => `
+      <div class="anomaly-item ${a.severity}">
+        <div class="anomaly-icon">${codeToIcon(a.code)}</div>
+        <div>
+          <div class="anomaly-code">${a.code}</div>
+          <div class="anomaly-desc">${a.description}</div>
+          ${a.detail ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${a.detail}</div>` : ''}
+          <div class="anomaly-action">→ ${a.action}</div>
+        </div>
+      </div>
+    `).join('');
+
+  // Risk
+  const risk = inv.risk_bucket || 'low';
+  const riskColor = { low: 'var(--safe)', medium: 'var(--warn)', high: 'var(--danger)' }[risk];
+  document.getElementById('risk-body').innerHTML = `
+    <div class="risk-visual">
+      <div class="risk-gauge ${risk}">
+        <div class="risk-bucket-text" style="color:${riskColor}">${risk}</div>
+        <div class="risk-score-text">RISK</div>
+      </div>
+      <div class="risk-rationale">${inv.risk_rationale || inv.rationale || riskDefaultRationale(risk, inv)}</div>
+    </div>
+  `;
+
+  // Buyer
+  const profile = inv.buyer_match?.buyer_profile || {};
+  document.getElementById('buyer-body').innerHTML = `
+    <div class="field-row">
+      <div class="field-label">Raw Input</div>
+      <div class="field-value" style="font-family:var(--mono);font-size:11px;">${inv.buyer_match?.raw_input || inv.buyer_name || '—'}</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Matched Name</div>
+      <div class="field-value"><strong>${inv.buyer_match?.buyer_name || inv.buyer_name || '—'}</strong></div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Match Method</div>
+      <div class="field-value" style="font-family:var(--mono);font-size:11px;">${inv.buyer_match?.match_method || 'mock'}</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Match Score</div>
+      <div class="field-value">${inv.buyer_match?.match_score ? Math.round(inv.buyer_match.match_score * 100) + '%' : '—'}</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Buyer ID</div>
+      <div class="field-value" style="font-family:var(--mono);font-size:11px;">${inv.buyer_id || inv.buyer_match?.buyer_id || '—'}</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Payment History</div>
+      <div class="field-value" style="text-transform:capitalize;">${profile.payment_history || '—'}</div>
+    </div>
+    <div class="field-row">
+      <div class="field-label">Invoice History</div>
+      <div class="field-value">${profile.invoice_count ? profile.invoice_count + ' invoices' : '—'}</div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────
+// Pipeline Diagram
+// ──────────────────────────────────────────────
+function renderPipeline() {
+  const steps = [
+    { week: 2, icon: '🔍', title: 'OCR Pipeline', file: 'pipeline/ocr_pipeline.py',
+      desc: 'Converts PDF and scanned image invoices to machine-readable text using pytesseract and pdfplumber. Includes image preprocessing: grayscale → denoise → deskew → threshold.' },
+    { week: 3, icon: '🧩', title: 'Text Structurer', file: 'pipeline/text_structurer.py',
+      desc: 'Segments raw OCR text into Header, Line Items, and Totals sections using keyword detection and proximity rules. Outputs a normalized JSON structure.' },
+    { week: 4, icon: '🏷️', title: 'Field Extractor', file: 'pipeline/field_extractor.py',
+      desc: 'Extracts invoice_number, dates, buyer/seller names, amounts using regex patterns + spaCy NLP for named entities. Each field gets a confidence score (0–1).' },
+    { week: 5, icon: '🚨', title: 'Anomaly Detector', file: 'pipeline/anomaly_detector.py',
+      desc: 'Checks for: duplicate invoice numbers, same buyer+amount re-submission, statistically abnormal amounts (Z-score > 2σ), date inconsistencies, and unknown buyers.' },
+    { week: 6, icon: '🏢', title: 'Buyer Matcher', file: 'pipeline/buyer_matcher.py',
+      desc: 'Fuzzy-matches raw OCR buyer names against the registered buyer database using RapidFuzz. Assigns risk buckets (Low/Medium/High) based on payment history and anomaly flags.' },
+    { week: 7, icon: '🌐', title: 'FastAPI Backend', file: 'backend/main.py',
+      desc: 'Orchestrates the full pipeline via REST API. Provides /upload, /invoices, /anomalies, /buyers, /stats endpoints. Runs with uvicorn.' },
+  ];
+
+  document.getElementById('pipeline-steps').innerHTML = steps.map((s, i) => `
+    <div style="display:flex;gap:16px;margin-bottom:${i < steps.length-1 ? '0' : '0'};">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${s.icon}</div>
+        ${i < steps.length-1 ? `<div style="width:2px;flex:1;background:var(--border);margin:6px 0;min-height:24px;"></div>` : ''}
+      </div>
+      <div style="flex:1;padding-bottom:${i < steps.length-1 ? '16px' : '0'};">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <strong style="font-size:14px;">${s.title}</strong>
+          <span style="font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:4px;background:var(--accent-dim);color:var(--accent);">WEEK ${s.week}</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);">${s.file}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">${s.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ──────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────
+function riskBadge(r) {
+  if (!r) return '<span class="badge medium">—</span>';
+  const icons = { low: '🟢', medium: '🟡', high: '🔴' };
+  return `<span class="badge ${r}">${icons[r] || ''} ${r.toUpperCase()}</span>`;
+}
+function statusBadge(s) {
+  return s === 'flagged'
+    ? `<span class="badge flagged">⚑ FLAGGED</span>`
+    : `<span class="badge clean">✓ CLEAN</span>`;
+}
+function formatNum(n) {
+  if (!n) return '0';
+  return Number(n).toLocaleString('en-IN');
+}
+function histToRisk(h) {
+  return { excellent: 'low', good: 'low', average: 'medium', poor: 'high' }[h] || 'medium';
+}
+function codeToSev(code) {
+  const high = ['DUPLICATE_INVOICE_NUMBER', 'SAME_AMOUNT_SAME_BUYER', 'ABNORMALLY_HIGH_AMOUNT', 'MISSING_INVOICE_NUMBER', 'MISSING_BUYER_NAME', 'UNKNOWN_BUYER', 'MISSING_AMOUNT'];
+  const med = ['DATE_INCONSISTENCY', 'PAST_DUE_DATE', 'ABNORMALLY_LOW_AMOUNT'];
+  if (high.includes(code)) return 'high';
+  if (med.includes(code)) return 'medium';
+  return 'low';
+}
+function codeToIcon(code) {
+  const map = {
+    DUPLICATE_INVOICE_NUMBER: '🔁', SAME_AMOUNT_SAME_BUYER: '♊',
+    ABNORMALLY_HIGH_AMOUNT: '💸', ABNORMALLY_LOW_AMOUNT: '📉',
+    MISSING_INVOICE_NUMBER: '❌', MISSING_BUYER_NAME: '👤',
+    MISSING_AMOUNT: '💰', DATE_INCONSISTENCY: '📅', PAST_DUE_DATE: '⌛',
+    UNKNOWN_BUYER: '❓', LOW_EXTRACTION_CONFIDENCE: '🔆',
+  };
+  return map[code] || '⚠️';
+}
+function codeToDesc(code) {
+  const map = {
+    DUPLICATE_INVOICE_NUMBER: 'Invoice number was previously submitted',
+    SAME_AMOUNT_SAME_BUYER: 'Same amount for this buyer recently',
+    ABNORMALLY_HIGH_AMOUNT: 'Amount significantly above buyer average',
+    ABNORMALLY_LOW_AMOUNT: 'Amount unusually low for this buyer',
+    MISSING_INVOICE_NUMBER: 'Invoice number not found in document',
+    MISSING_BUYER_NAME: 'Buyer name could not be extracted',
+    MISSING_AMOUNT: 'Invoice amount could not be determined',
+    DATE_INCONSISTENCY: 'Due date is before the invoice date',
+    PAST_DUE_DATE: 'Invoice payment is already overdue',
+    UNKNOWN_BUYER: 'Buyer not in registered database',
+    LOW_EXTRACTION_CONFIDENCE: 'OCR extraction confidence is low',
+  };
+  return map[code] || code;
+}
+function riskDefaultRationale(risk, inv) {
+  if (risk === 'high') return 'High-severity anomaly detected. Manual review required before disbursement.';
+  if (risk === 'medium') return 'Medium risk. Known buyer but anomaly or limited history requires attention.';
+  return `Known buyer with ${inv.buyer_name || 'good'} track record. Invoice within normal range.`;
+}
+function showProcessing(show, scenario) {
+  const overlay = document.getElementById('processing-overlay');
+  overlay.classList.toggle('visible', show);
+  if (show) {
+    const steps = {
+      clean: 'Processing clean invoice...', duplicate: 'Detecting duplicate....',
+      high_amount: 'Analyzing amount anomaly...', date_issue: 'Checking date consistency...',
+      unknown_buyer: 'Matching buyer...', file: 'Analyzing uploaded file...'
+    };
+    document.getElementById('processing-step').textContent = steps[scenario] || 'Processing...';
+  }
+}
+async function refreshData() {
+  const view = document.querySelector('.view.active')?.id.replace('view-', '');
+  if (view) showView(view);
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ──────────────────────────────────────────────
+// Mock Data (used when API is offline)
+// ──────────────────────────────────────────────
+const MOCK_INVOICES = [
+  { id:'INV-2024-001', invoice_number:'BM-2024-09001', invoice_date:'2024-09-01', due_date:'2024-10-01', buyer_name:'Reliance Retail Ltd', buyer_id:'B001', seller_name:'Apex Packaging Co.', amount:478500, gst:86130, total:564630, currency:'INR', risk_bucket:'low', anomalies:[], status:'processed', buyer_match:{buyer_id:'B001',buyer_name:'Reliance Retail Ltd',raw_input:'Reliance Retail Ltd',match_score:1.0,match_method:'exact',buyer_profile:{payment_history:'good',invoice_count:42,avg_invoice_amount:485000}} },
+  { id:'INV-2024-002', invoice_number:'BM-2024-09002', invoice_date:'2024-09-03', due_date:'2024-10-03', buyer_name:'Tata Consumer Products', buyer_id:'B002', seller_name:'SunPack Industries', amount:315000, gst:56700, total:371700, currency:'INR', risk_bucket:'low', anomalies:[], status:'processed', buyer_match:{buyer_id:'B002',buyer_name:'Tata Consumer Products',raw_input:'Tata Consumer',match_score:0.92,match_method:'fuzzy',buyer_profile:{payment_history:'excellent',invoice_count:67,avg_invoice_amount:320000}} },
+  { id:'INV-2024-003', invoice_number:'BM-2024-09001', invoice_date:'2024-09-05', due_date:'2024-10-05', buyer_name:'Reliance Retail', buyer_id:'B001', seller_name:'Apex Packaging Co.', amount:478500, gst:86130, total:564630, currency:'INR', risk_bucket:'high', anomalies:['DUPLICATE_INVOICE_NUMBER','SAME_AMOUNT_SAME_BUYER'], status:'flagged', risk_rationale:'Duplicate invoice number. Same amount for same buyer.', buyer_match:{buyer_id:'B001',buyer_name:'Reliance Retail Ltd',raw_input:'Reliance Retail',match_score:0.93,match_method:'fuzzy',buyer_profile:{payment_history:'good',invoice_count:42}} },
+  { id:'INV-2024-004', invoice_number:'BM-2024-09003', invoice_date:'2024-09-07', due_date:'2024-10-07', buyer_name:'Flipkart Internet Pvt Ltd', buyer_id:'B003', seller_name:'LogiPack Solutions', amount:1250000, gst:225000, total:1475000, currency:'INR', risk_bucket:'high', anomalies:['ABNORMALLY_HIGH_AMOUNT'], status:'flagged', risk_rationale:'Amount ₹12,50,000 is 2.8σ above buyer average.', buyer_match:{buyer_id:'B003',buyer_name:'Flipkart Internet Pvt Ltd',raw_input:'Flipkart Internet Pvt Ltd',match_score:1.0,match_method:'exact',buyer_profile:{payment_history:'good',invoice_count:89,avg_invoice_amount:750000}} },
+  { id:'INV-2024-005', invoice_number:'BM-2024-09004', invoice_date:'2024-09-10', due_date:'2024-10-10', buyer_name:'Zomato Ltd', buyer_id:'B004', seller_name:'FreshPack Co.', amount:118500, gst:21330, total:139830, currency:'INR', risk_bucket:'low', anomalies:[], status:'processed', buyer_match:{buyer_id:'B004',buyer_name:'Zomato Ltd',raw_input:'Zomato Ltd',match_score:1.0,match_method:'exact',buyer_profile:{payment_history:'average',invoice_count:15}} },
+  { id:'INV-2024-006', invoice_number:'BM-2024-09005', invoice_date:'2024-09-12', due_date:'2024-09-10', buyer_name:'DMart Ready', buyer_id:'B005', seller_name:'MetroPack Pvt Ltd', amount:615000, gst:110700, total:725700, currency:'INR', risk_bucket:'medium', anomalies:['DATE_INCONSISTENCY'], status:'flagged', risk_rationale:'Due date is before invoice date.', buyer_match:{buyer_id:'B005',buyer_name:'DMart Ready',raw_input:'DMart Ready',match_score:1.0,match_method:'exact',buyer_profile:{payment_history:'excellent',invoice_count:33}} },
+  { id:'INV-2024-007', invoice_number:'BM-2024-09006', invoice_date:'2024-09-15', due_date:'2024-10-15', buyer_name:'NovaTech Supplies', buyer_id:null, seller_name:'QuickPack India', amount:890000, gst:160200, total:1050200, currency:'INR', risk_bucket:'high', anomalies:['UNKNOWN_BUYER'], status:'flagged', risk_rationale:'Buyer not in registered database.', buyer_match:{buyer_id:null,buyer_name:'NovaTech Supplies',raw_input:'NovaTech Supplies',match_score:0.3,match_method:'none'} },
+];
+const MOCK_BUYERS = [
+  { id:'B001', name:'Reliance Retail Ltd', avg_invoice_amount:485000, std_dev:95000, payment_history:'good', invoice_count:42, risk_bucket:'low' },
+  { id:'B002', name:'Tata Consumer Products', avg_invoice_amount:320000, std_dev:60000, payment_history:'excellent', invoice_count:67, risk_bucket:'low' },
+  { id:'B003', name:'Flipkart Internet Pvt Ltd', avg_invoice_amount:750000, std_dev:180000, payment_history:'good', invoice_count:89, risk_bucket:'low' },
+  { id:'B004', name:'Zomato Ltd', avg_invoice_amount:120000, std_dev:30000, payment_history:'average', invoice_count:15, risk_bucket:'medium' },
+  { id:'B005', name:'DMart Ready', avg_invoice_amount:620000, std_dev:110000, payment_history:'excellent', invoice_count:33, risk_bucket:'low' },
+];
+
+// ──────────────────────────────────────────────
+// Init
+// ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setupUpload();
+  loadDashboard();
+  // Check API health
+  fetch(API + '/').then(() => {
+    document.getElementById('api-status').textContent = 'API Connected';
+  }).catch(() => {
+    document.getElementById('api-status').textContent = 'Demo Mode';
+  });
+});
+</script>
+</body>
+</html>

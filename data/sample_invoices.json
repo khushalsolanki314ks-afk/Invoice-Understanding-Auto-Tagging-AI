@@ -1,0 +1,188 @@
+{
+  "buyers": [
+    {
+      "id": "B001",
+      "name": "Reliance Retail Ltd",
+      "aliases": ["Reliance Retail", "RRL", "Reliance"],
+      "avg_invoice_amount": 485000,
+      "std_dev": 95000,
+      "payment_history": "good",
+      "invoice_count": 42
+    },
+    {
+      "id": "B002",
+      "name": "Tata Consumer Products",
+      "aliases": ["Tata Consumer", "TCPL", "Tata"],
+      "avg_invoice_amount": 320000,
+      "std_dev": 60000,
+      "payment_history": "excellent",
+      "invoice_count": 67
+    },
+    {
+      "id": "B003",
+      "name": "Flipkart Internet Pvt Ltd",
+      "aliases": ["Flipkart", "Flipkart Internet", "FK"],
+      "avg_invoice_amount": 750000,
+      "std_dev": 180000,
+      "payment_history": "good",
+      "invoice_count": 89
+    },
+    {
+      "id": "B004",
+      "name": "Zomato Ltd",
+      "aliases": ["Zomato", "Zomato India"],
+      "avg_invoice_amount": 120000,
+      "std_dev": 30000,
+      "payment_history": "average",
+      "invoice_count": 15
+    },
+    {
+      "id": "B005",
+      "name": "DMart Ready",
+      "aliases": ["DMart", "D-Mart", "Avenue Supermarts"],
+      "avg_invoice_amount": 620000,
+      "std_dev": 110000,
+      "payment_history": "excellent",
+      "invoice_count": 33
+    }
+  ],
+  "invoices": [
+    {
+      "id": "INV-2024-001",
+      "invoice_number": "BM-2024-09001",
+      "invoice_date": "2024-09-01",
+      "due_date": "2024-10-01",
+      "buyer_name": "Reliance Retail Ltd",
+      "buyer_id": "B001",
+      "seller_name": "Apex Packaging Co.",
+      "amount": 478500,
+      "gst": 86130,
+      "total": 564630,
+      "currency": "INR",
+      "line_items": [
+        {"description": "HDPE Bags 50kg", "qty": 500, "unit_price": 650, "total": 325000},
+        {"description": "Corrugated Boxes L", "qty": 200, "unit_price": 767.5, "total": 153500}
+      ],
+      "risk_bucket": "low",
+      "anomalies": [],
+      "status": "processed"
+    },
+    {
+      "id": "INV-2024-002",
+      "invoice_number": "BM-2024-09002",
+      "invoice_date": "2024-09-03",
+      "due_date": "2024-10-03",
+      "buyer_name": "Tata Consumer Products",
+      "buyer_id": "B002",
+      "seller_name": "SunPack Industries",
+      "amount": 315000,
+      "gst": 56700,
+      "total": 371700,
+      "currency": "INR",
+      "line_items": [
+        {"description": "Tea Packaging Film", "qty": 1000, "unit_price": 250, "total": 250000},
+        {"description": "Label Rolls 3in", "qty": 300, "unit_price": 216.67, "total": 65000}
+      ],
+      "risk_bucket": "low",
+      "anomalies": [],
+      "status": "processed"
+    },
+    {
+      "id": "INV-2024-003",
+      "invoice_number": "BM-2024-09001",
+      "invoice_date": "2024-09-05",
+      "due_date": "2024-10-05",
+      "buyer_name": "Reliance Retail",
+      "buyer_id": "B001",
+      "seller_name": "Apex Packaging Co.",
+      "amount": 478500,
+      "gst": 86130,
+      "total": 564630,
+      "currency": "INR",
+      "line_items": [
+        {"description": "HDPE Bags 50kg", "qty": 500, "unit_price": 650, "total": 325000},
+        {"description": "Corrugated Boxes L", "qty": 200, "unit_price": 767.5, "total": 153500}
+      ],
+      "risk_bucket": "high",
+      "anomalies": ["DUPLICATE_INVOICE_NUMBER", "SAME_AMOUNT_SAME_BUYER"],
+      "status": "flagged"
+    },
+    {
+      "id": "INV-2024-004",
+      "invoice_number": "BM-2024-09003",
+      "invoice_date": "2024-09-07",
+      "due_date": "2024-10-07",
+      "buyer_name": "Flipkart Internet Pvt Ltd",
+      "buyer_id": "B003",
+      "seller_name": "LogiPack Solutions",
+      "amount": 1250000,
+      "gst": 225000,
+      "total": 1475000,
+      "currency": "INR",
+      "line_items": [
+        {"description": "Bubble Wrap Rolls", "qty": 2000, "unit_price": 450, "total": 900000},
+        {"description": "Stretch Film 23mu", "qty": 500, "unit_price": 700, "total": 350000}
+      ],
+      "risk_bucket": "high",
+      "anomalies": ["ABNORMALLY_HIGH_AMOUNT"],
+      "status": "flagged"
+    },
+    {
+      "id": "INV-2024-005",
+      "invoice_number": "BM-2024-09004",
+      "invoice_date": "2024-09-10",
+      "due_date": "2024-10-10",
+      "buyer_name": "Zomato Ltd",
+      "buyer_id": "B004",
+      "seller_name": "FreshPack Co.",
+      "amount": 118500,
+      "gst": 21330,
+      "total": 139830,
+      "currency": "INR",
+      "line_items": [
+        {"description": "Food Grade Containers", "qty": 1500, "unit_price": 79, "total": 118500}
+      ],
+      "risk_bucket": "low",
+      "anomalies": [],
+      "status": "processed"
+    },
+    {
+      "id": "INV-2024-006",
+      "invoice_number": "BM-2024-09005",
+      "invoice_date": "2024-09-12",
+      "due_date": "2024-09-10",
+      "buyer_name": "DMart Ready",
+      "buyer_id": "B005",
+      "seller_name": "MetroPack Pvt Ltd",
+      "amount": 615000,
+      "gst": 110700,
+      "total": 725700,
+      "currency": "INR",
+      "line_items": [
+        {"description": "PP Woven Bags", "qty": 1000, "unit_price": 615, "total": 615000}
+      ],
+      "risk_bucket": "medium",
+      "anomalies": ["DATE_INCONSISTENCY"],
+      "status": "flagged"
+    },
+    {
+      "id": "INV-2024-007",
+      "invoice_number": "BM-2024-09006",
+      "invoice_date": "2024-09-15",
+      "due_date": "2024-10-15",
+      "buyer_name": "NovaTech Supplies",
+      "buyer_id": null,
+      "seller_name": "QuickPack India",
+      "amount": 890000,
+      "gst": 160200,
+      "total": 1050200,
+      "currency": "INR",
+      "line_items": [
+        {"description": "Industrial Packaging Kit", "qty": 100, "unit_price": 8900, "total": 890000}
+      ],
+      "risk_bucket": "high",
+      "anomalies": ["UNKNOWN_BUYER"],
+      "status": "flagged"
+    }
+  ]
+}
